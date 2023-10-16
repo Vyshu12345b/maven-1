@@ -1,7 +1,6 @@
 <html>
 <body>
 <h1>Welcome To Srini IT</h1>
-<h1>Welcome to DevOps and AWS Classes</h2>
 </body>
 <body style="color:red;">
  <!--<div class="container" align="center">
