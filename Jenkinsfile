@@ -235,22 +235,63 @@
 // }
 
 
+// pipeline{
+//     agent any
+//     environment {
+//         PATH = "$PATH:/opt/apache-maven-3.6.3/bin"
+//     }
+//     stages{
+//         stage('ContinuousDownload'){
+//             steps{
+//                 git branch: 'master',
+//                 url: 'https://github.com/MRaju2022/maven.git'
+//             }
+//         }
+//         stage('ContinuousBuild'){
+//             steps{
+//                sh 'mvn clean package'
+//             }
+//         }
+//     }
+// }
+
+
+
+
+
 pipeline{
     agent any
-    environment {
-        PATH = "$PATH:/opt/apache-maven-3.6.3/bin"
+    environment{
+         def mavenHome = tool name: "Maven-3.8.8", type: "maven"
+         def mavenCMD = "${mavenHome}/bin/mvn"
     }
     stages{
-        stage('ContinuousDownload'){
+        stage("clone project"){
             steps{
-                git branch: 'master',
-                url: 'https://github.com/MRaju2022/maven.git'
+                git credentialsId: '972c80ec-e918-49b6-b0a1-0ad78da3671d', url: 'https://github.com/MRaju2022/maven.git'
             }
         }
-        stage('ContinuousBuild'){
+        stage('build'){
             steps{
-               sh 'mvn clean package'
+               
+                sh "${mavenCMD} clean package"
             }
+        }
+         stage('code review'){
+            steps{
+                withSonarQubeEnv('Sonar-Server-7.8'){
+                    sh '${mavenCMD} sonar:sonar'
+                }
+                
+           }
+        }
+        stage('Deploy'){
+           steps{
+               sshagent(['EC2-USER']){
+                   sh 'scp -o StrictHostKeyChecking=no webapp/target/webapp.war ec2-user@15.207.89.70:/home/ec2-user/apache-tomcat-9.0.80/webapps'
+               }
+           } 
         }
     }
 }
+
