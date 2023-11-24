@@ -235,12 +235,7 @@
       </dependency>
     </dependencies>
 
-   <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencyManagement>
+     </dependencyManagement>
 
   <scm>
     <connection>scm:git:git@github.com:jleetutorial/maven-project.git</connection>
