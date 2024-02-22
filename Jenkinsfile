@@ -299,41 +299,73 @@
 
 
 
-node{
-    stage('clone proj'){
-        git credentialsId: 'GITHUB-CREDENTIALS', url: 'https://github.com/MRaju2022/maven.git'
-    }
-    stage('build'){
+// node{
+//     stage('clone proj'){
+//         git credentialsId: 'GITHUB-CREDENTIALS', url: 'https://github.com/MRaju2022/maven.git'
+//     }
+//     stage('build'){
         
-        def mavenHome = tool name: "Maven-3.8.6", type: "maven"
-        def mavenCMD = "${mavenHome}/bin/mvn"
-        sh "${mavenCMD} clean package"
-    }
-    stage('Code Review'){
-        withSonarQubeEnv('Sonar-Server-7.8') {
-             def mavenHome = tool name: "Maven-3.8.6", type: "maven"
-             def mavenCMD = "${mavenHome}/bin/mvn"
-             sh "${mavenCMD} sonar:sonar"
-        }
-    }
-    stage('upload Artifact'){
-        nexusArtifactUploader artifacts: [[artifactId: 'mavenwebapp', classifier: '', file: 'webapp/target/webapp.war', type: 'war']], credentialsId: 'NEXUS-CREDENTIALS', groupId: 'in.sriniit', nexusUrl: '13.201.79.14:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'Raju_Snapshot_Repo', version: '1.0-SNAPSHOT'
-    }
-    stage('Build Image'){
-         sh "docker build -t mraju25/mavenwebapp ."
-    }
-    stage('upload image'){
-        withCredentials([string(credentialsId: 'DOCKER_CREDENTIALS', variable: 'DOCKER_CREDENTIALS')]) {
-            sh "docker login -u mraju25 -p ${DOCKER_CREDENTIALS}"
-        }
-        sh "docker push mraju25/mavenwebapp"
-    }
-    stage('deployment'){
-        kubernetesDeploy(
-	   configs: 'maven-web-app-deploy.yml',
-	   kubeconfigId: 'KUBE-CONFIG'
-	)
+//         def mavenHome = tool name: "Maven-3.8.6", type: "maven"
+//         def mavenCMD = "${mavenHome}/bin/mvn"
+//         sh "${mavenCMD} clean package"
+//     }
+//     stage('Code Review'){
+//         withSonarQubeEnv('Sonar-Server-7.8') {
+//              def mavenHome = tool name: "Maven-3.8.6", type: "maven"
+//              def mavenCMD = "${mavenHome}/bin/mvn"
+//              sh "${mavenCMD} sonar:sonar"
+//         }
+//     }
+//     stage('upload Artifact'){
+//         nexusArtifactUploader artifacts: [[artifactId: 'mavenwebapp', classifier: '', file: 'webapp/target/webapp.war', type: 'war']], credentialsId: 'NEXUS-CREDENTIALS', groupId: 'in.sriniit', nexusUrl: '13.201.79.14:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'Raju_Snapshot_Repo', version: '1.0-SNAPSHOT'
+//     }
+//     stage('Build Image'){
+//          sh "docker build -t mraju25/mavenwebapp ."
+//     }
+//     stage('upload image'){
+//         withCredentials([string(credentialsId: 'DOCKER_CREDENTIALS', variable: 'DOCKER_CREDENTIALS')]) {
+//             sh "docker login -u mraju25 -p ${DOCKER_CREDENTIALS}"
+//         }
+//         sh "docker push mraju25/mavenwebapp"
+//     }
+//     stage('deployment'){
+//         kubernetesDeploy(
+// 	   configs: 'maven-web-app-deploy.yml',
+// 	   kubeconfigId: 'KUBE-CONFIG'
+// 	)
 
+//     }
+// }
+
+pipeline{
+    agent any
+    environment {
+        PATH = "$PATH:/opt/apache-maven-3.6.3/bin"
+    }
+    stages{
+        stage('ContinuousDownload'){
+            steps{
+                git credentialsId: 'GIT-CREDENTIALS', url: 'https://github.com/MRaju2022/maven.git'
+            }
+        }
+         stage('ContinuousBuild'){
+            steps{
+                sh 'mvn clean package'
+            }
+        }
+        stage('SonarQubeAnalysis'){
+            steps{
+               withSonarQubeEnv('Sonar-Server-7.8'){
+                   sh 'mvn sonar:sonar'
+               } 
+            }
+        }
+        stage('Deploy'){
+            steps{
+                sshagent(['SSH-AGENT']){
+                    sh 'scp -o StrictHostKeyChecking=no webapp/target/webapp.war ec2-user@13.201.131.244:/home/ec2-user/apache-tomcat-9.0.85/webapps'
+                }
+            }
+        }
     }
 }
-
