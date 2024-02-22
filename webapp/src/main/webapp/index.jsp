@@ -3,9 +3,9 @@
 <h1>Welcome To Srini IT</h1>
 </body>
 <body style="color:red;">
- <div class="container" align="center">
+ <!--<div class="container" align="center">
   <h1> Master program On DevOps with AWS CLoud</h1>
- </div>
+ </div>-->
  <div class="container">
     <label for="uname"><b>Username:    </b></label>
     <input type="text" placeholder="Enter Username" name="uname" required>
