@@ -337,34 +337,66 @@
 //     }
 // }
 
+// pipeline{
+//     agent any
+//     environment {
+//         PATH = "$PATH:/opt/apache-maven-3.6.3/bin"
+//     }
+//     stages{
+//         stage('ContinuousDownload'){
+//             steps{
+//                 git credentialsId: 'GIT-CREDENTIALS', url: 'https://github.com/MRaju2022/maven.git'
+//             }
+//         }
+//          stage('ContinuousBuild'){
+//             steps{
+//                 sh 'mvn clean package'
+//             }
+//         }
+//         stage('SonarQubeAnalysis'){
+//             steps{
+//                withSonarQubeEnv('Sonar-Server-7.8'){
+//                    sh 'mvn sonar:sonar'
+//                } 
+//             }
+//         }
+//         stage('Deploy'){
+//             steps{
+//                 sshagent(['SSH-AGENT']){
+//                     sh 'scp -o StrictHostKeyChecking=no webapp/target/webapp.war ec2-user@13.201.131.244:/home/ec2-user/apache-tomcat-9.0.85/webapps'
+//                 }
+//             }
+//         }
+//     }
+// }
 pipeline{
     agent any
-    environment {
+    environment{
         PATH = "$PATH:/opt/apache-maven-3.6.3/bin"
     }
     stages{
-        stage('ContinuousDownload'){
+        stage('contineousClone'){
             steps{
-                git credentialsId: 'GIT-CREDENTIALS', url: 'https://github.com/MRaju2022/maven.git'
+                git credentialsId: 'GIT-DETAILS', url: 'https://github.com/MRaju2022/maven.git'
             }
         }
-         stage('ContinuousBuild'){
+        stage('contineousBuild'){
             steps{
                 sh 'mvn clean package'
             }
         }
-        stage('SonarQubeAnalysis'){
+        stage('sonarAnalysis'){
             steps{
-               withSonarQubeEnv('Sonar-Server-7.8'){
-                   sh 'mvn sonar:sonar'
-               } 
+                withSonarQubeEnv('Sonar-Server-7.8'){
+                    sh 'mvn sonar:sonar'
+                }
             }
         }
         stage('Deploy'){
             steps{
-                sshagent(['SSH-AGENT']){
-                    sh 'scp -o StrictHostKeyChecking=no webapp/target/webapp.war ec2-user@13.201.131.244:/home/ec2-user/apache-tomcat-9.0.85/webapps'
-                }
+               sshagent(['SSH-AGENT']){
+                 sh 'scp -o StrictHostKeyChecking=no webapp/target/webapp.war ec2-user@15.207.72.43:/home/ec2-user/apache-tomcat-9.0.85/webapps'
+              } 
             }
         }
     }
